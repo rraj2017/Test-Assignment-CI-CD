@@ -1,0 +1,43 @@
+name: test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+     branches: [ main ]
+
+jobs:
+  setup-java:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v3
+      - name: set up java  
+        uses: actions/setup-java@v3
+        
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          
+      - name: verify java version
+        run: java -version
+      - name: Build & Install
+        run: mvn -B install -DskipTests --no-transfer-progress
+        
+      - name: Install Playwright Browsers
+        run: mvn exec:java -e -Dexec.mainClass=com.microsoft.playwright.CLI -Dexec.args="install --with-deps"
+     
+      - name: playwright Tests
+        run: mvn test
+    
+      - name: Vars- Testing
+        run: echo '${{vars.MY_TESTING}}'
+      - name: Secret Key
+        run: echo '${{secrets.MY_SECRET_KEY}}'
+      
+      - name: ✅ Build and Test Completed Successfully
+        if: success()
+        run: echo "🎉 All tests passed and build succeeded!"
+
+    
